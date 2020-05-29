@@ -44,7 +44,6 @@ func exe_cmd(cmd string) string {
 		return exe_bash(cmd)
 	}
 	parts := strings.Fields(cmd)
-	fmt.Printf("%q\n", parts)
 	out, err := exec.Command(parts[0], parts[1:]...).CombinedOutput()
 	outstr := string(out)
 	if err != nil {
