@@ -46,9 +46,10 @@ func exe_cmd(cmd string) string {
 	parts := strings.Fields(cmd)
 	fmt.Printf("%q\n", parts)
 	out, err := exec.Command(parts[0], parts[1:]...).CombinedOutput()
+	outstr := string(out)
 	if err != nil {
-		fmt.Printf("error occured: %s\n", err)
-		return string(out) + "\r\n" + err.Error()
+		outstr += err.Error()
 	}
-	return string(out)
+	fmt.Println(outstr)
+	return outstr
 }
