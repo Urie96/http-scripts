@@ -1,3 +1,3 @@
 cd ../nginx
-# git pull
+git pull
 nginx -s reload

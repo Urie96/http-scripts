@@ -10,13 +10,17 @@ import (
 
 func main() {
 	http.HandleFunc("/pull/", pullHandler)
-	http.HandleFunc("/cmd", cmdHandler)
+	http.HandleFunc("/", cmdHandler)
 	http.ListenAndServe(":7002", nil)
 }
 
 func cmdHandler(w http.ResponseWriter, r *http.Request) {
-	cmd := r.URL.Query()["cmd"][0]
-	output := exe_cmd(cmd)
+	var output string
+	if cmd := r.URL.Query()["cmd"]; len(cmd) > 0 {
+		output = exe_cmd(cmd[0])
+	} else {
+		output = "param cmd is required"
+	}
 	fmt.Fprintf(w, output)
 }
 
