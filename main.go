@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -13,7 +14,9 @@ const scriptname = "temp.sh"
 func main() {
 	// http.HandleFunc("/pull/", pullHandler)
 	http.HandleFunc("/", cmdHandler)
-	http.ListenAndServe(":7002", nil)
+	if err := http.ListenAndServe(":7002", nil); err != nil {
+		log.Println("fail to listen 7002:", err)
+	}
 }
 
 func cmdHandler(w http.ResponseWriter, r *http.Request) {
