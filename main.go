@@ -2,57 +2,63 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
-	"strings"
 )
 
+const scriptname = "temp.sh"
+
 func main() {
-	http.HandleFunc("/pull/", pullHandler)
+	// http.HandleFunc("/pull/", pullHandler)
 	http.HandleFunc("/", cmdHandler)
 	http.ListenAndServe(":7002", nil)
 }
 
 func cmdHandler(w http.ResponseWriter, r *http.Request) {
 	var output string
-	if cmd := r.URL.Query()["cmd"]; len(cmd) > 0 {
-		output = exe_cmd(cmd[0])
+	cmd, _ := ioutil.ReadAll(r.Body)
+	fmt.Println(string(cmd))
+	if len(cmd) > 0 {
+		output = exe_cmd(cmd)
 	} else {
 		output = "param cmd is required"
 	}
 	fmt.Fprintf(w, output)
 }
 
-func pullHandler(w http.ResponseWriter, r *http.Request) {
-	partOfURL := r.URL.Path[len("/pull/"):]
-	switch partOfURL {
-	case "nginx":
-		out := exe_bash("./pull_nginx.sh")
-		fmt.Fprintf(w, out)
-	case "weixin":
-		out := exe_bash("./pull_weixin.sh")
-		fmt.Fprintf(w, out)
-	default:
-		fmt.Fprintf(w, "no script")
-	}
-}
+// func pullHandler(w http.ResponseWriter, r *http.Request) {
+// 	partOfURL := r.URL.Path[len("/pull/"):]
+// 	switch partOfURL {
+// 	case "nginx":
+// 		out := exe_bash("./pull_nginx.sh")
+// 		fmt.Fprintf(w, out)
+// 	case "weixin":
+// 		out := exe_bash("./pull_weixin.sh")
+// 		fmt.Fprintf(w, out)
+// 	default:
+// 		fmt.Fprintf(w, "no script")
+// 	}
+// }
 
-func exe_bash(scriptPath string) string {
-	return exe_cmd("bash " + scriptPath)
-}
+// func exe_bash(scriptPath string) string {
+// 	return exe_cmd("bash " + scriptPath)
+// }
 
-func exe_cmd(cmd string) string {
-	log.Println(cmd)
-	if strings.HasPrefix(cmd, "./") {
-		return exe_bash(cmd)
-	}
-	parts := strings.Fields(cmd)
-	out, err := exec.Command(parts[0], parts[1:]...).CombinedOutput()
+func exe_cmd(cmd []byte) string {
+	writeCmdToTempShell(cmd)
+	out, err := exec.Command("bash", scriptname).CombinedOutput()
 	outstr := string(out)
 	if err != nil {
 		outstr += err.Error()
 	}
 	fmt.Println(outstr)
 	return outstr
+}
+
+func writeCmdToTempShell(cmd []byte) {
+	f, _ := os.OpenFile(scriptname, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	defer f.Close()
+	f.Write(cmd)
 }
